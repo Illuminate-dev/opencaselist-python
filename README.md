@@ -1,4 +1,5 @@
 # opencaselist-python
+![Pypi version widget for this project](https://img.shields.io/pypi/v/opencaselist)
 
 A Python client library for the [OpenCaselist.com](https://opencaselist.com) API, providing easy access to debate case disclosure information.
 
