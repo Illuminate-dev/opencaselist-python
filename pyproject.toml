@@ -1,0 +1,10 @@
+[project]
+name = "opencaselist"
+version = "0.1.0"
+description = "API for opencaselist.com"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.12.4",
+    "requests>=2.32.5",
+]
