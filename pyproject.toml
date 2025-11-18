@@ -1,10 +1,26 @@
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+
 [project]
 name = "opencaselist"
 version = "0.1.0"
-description = "API for opencaselist.com"
+authors = [{ name = "Henry Beveridge", email = "henrydbeveridge@gmail.com" }]
+description = "Python client for opencaselist.com API"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "pydantic>=2.12.4",
-    "requests>=2.32.5",
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
 ]
+requires-python = ">=3.13"
+dependencies = ["pydantic>=2.12.4", "requests>=2.32.5"]
+
+[project.urls]
+Repository = "https://github.com/illuminate-dev/opencaselist-python.git"
+
+[dependency-groups]
+dev = ["twine>=6.2.0"]
