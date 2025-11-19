@@ -8,7 +8,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment:
+    environment: pypi
     name: PyPI
     permissions:
       id-token: write
