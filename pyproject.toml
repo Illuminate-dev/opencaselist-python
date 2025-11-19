@@ -23,7 +23,11 @@ dependencies = ["pydantic>=2.12.4", "requests>=2.32.5"]
 Repository = "https://github.com/illuminate-dev/opencaselist-python.git"
 
 [dependency-groups]
-dev = ["twine>=6.2.0", "uv-build>=0.9.10"]
+dev = [
+    "pytest>=9.0.1",
+    "twine>=6.2.0",
+    "uv-build>=0.9.10",
+]
 
 [[tool.uv.index]]
 name = "testpypi"
