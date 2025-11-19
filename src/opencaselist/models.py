@@ -1,7 +1,7 @@
 """Pydantic models for OpenCaselist API resources"""
 
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Any, List, Optional
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Caselist(BaseModel):
@@ -18,12 +18,11 @@ class Caselist(BaseModel):
 class School(BaseModel):
     """Represents a school in a caselist"""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     name: str
     display_name: Optional[str] = Field(None, alias="displayName")
     state: Optional[str] = None
-
-    class Config:
-        populate_by_name = True  # Allow both 'display_name' and 'displayName'
 
 
 class Team(BaseModel):
@@ -77,70 +76,100 @@ class Cite(BaseModel):
 
 
 class TabroomStudent(BaseModel):
-    """Represents a Tabroom student"""
+    """Represents a Tabroom student linked to a user"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    id: Optional[int] = None
+    first: Optional[str] = None
+    last: Optional[str] = None
 
 
 class TabroomRound(BaseModel):
-    """Represents a Tabroom round"""
+    """Represents a Tabroom round linked to a user or slug"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    id: Optional[int] = None
+    tournament: Optional[str] = None
+    round: Optional[str] = None
+    side: Optional[str] = None
+    opponent: Optional[str] = None
+    judge: Optional[str] = None
+    start_time: Optional[str] = None
+    share: Optional[str] = None
 
 
 class TabroomChapter(BaseModel):
-    """Represents a Tabroom chapter"""
+    """Represents a Tabroom chapter linked to a user"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    id: Optional[int] = None
+    name: Optional[str] = None
 
 
 class TabroomLink(BaseModel):
-    """Represents a Tabroom link"""
+    """Represents a Tabroom link created via POST /tabroom/link"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    slug: Optional[str] = None
 
 
 class File(BaseModel):
     """Represents an OpenEv file"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    openev_id: Optional[int] = None
+    title: Optional[str] = None
+    path: Optional[str] = None
+    year: Optional[str] = None
+    camp: Optional[str] = None
+    lab: Optional[str] = None
+    tags: Optional[List[str]] = None
+    file: Optional[str] = None
+    filename: Optional[str] = None
 
 
 class SearchResult(BaseModel):
-    """Represents a search result"""
+    """Represents a search result from the /search endpoint"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    id: Optional[int] = None
+    shard: Optional[str] = None
+    content: Optional[str] = None
+    path: Optional[str] = None
 
 
 class Download(BaseModel):
-    """Represents a bulk download"""
+    """Represents a bulk download from the /caselists/{caselist}/downloads endpoint"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    name: Optional[str] = None
+    url: Optional[str] = None
 
 
 class History(BaseModel):
-    """Represents a history log entry"""
+    """Represents a history log entry from school or team history endpoints"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    description: Optional[str] = None
+    updated_by: Optional[str] = None
+    updated_at: Optional[str] = None
 
 
 class Recent(BaseModel):
-    """Represents a recent modification"""
+    """Represents a recent modification from the /caselists/{caselist}/recent endpoint"""
 
-    # Schema not provided yet - will be populated when available
-    pass
+    team_id: Optional[int] = None
+    side: Optional[str] = None
+    tournament: Optional[str] = None
+    round: Optional[str] = None
+    opponent: Optional[str] = None
+    opensource: Optional[str] = None
+    team_name: Optional[str] = None
+    team_display_name: Optional[str] = None
+    school_name: Optional[str] = None
+    school_display_name: Optional[str] = None
+    updated_at: Optional[str] = None
 
 
 class Update(BaseModel):
-    """Represents an update"""
+    """Represents an update (empty schema)"""
 
-    # Schema not provided yet - will be populated when available
     pass
+
+
+class Err(BaseModel):
+    """Represents an error response from the API"""
+
+    message: str

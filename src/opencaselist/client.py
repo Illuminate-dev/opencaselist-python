@@ -9,7 +9,22 @@ import requests
 from pydantic import ValidationError as PydanticValidationError
 
 from .exceptions import APIError, AuthenticationError, NotFoundError, ValidationError
-from .models import Caselist, Cite, Round, School, Team
+from .models import (
+    Caselist,
+    Cite,
+    Download,
+    File,
+    History,
+    Recent,
+    Round,
+    School,
+    SearchResult,
+    TabroomChapter,
+    TabroomLink,
+    TabroomRound,
+    TabroomStudent,
+    Team,
+)
 
 
 class BaseResource:
@@ -181,10 +196,10 @@ class TeamResource(BaseResource):
         data = self._request("POST", f"{self._path}/cites", json=kwargs)
         return Cite(**data)
 
-    def history(self) -> List[Dict[str, Any]]:
+    def history(self) -> List[History]:
         """Get history log for this team"""
         data = self._request("GET", f"{self._path}/history")
-        return data
+        return [History(**entry) for entry in data]
 
 
 class SchoolResource(BaseResource):
@@ -215,10 +230,10 @@ class SchoolResource(BaseResource):
         data = self._request("POST", f"{self._path}/teams", json=kwargs)
         return Team(**data)
 
-    def history(self) -> List[Dict[str, Any]]:
+    def history(self) -> List[History]:
         """Get history log for this school"""
         data = self._request("GET", f"{self._path}/history")
-        return data
+        return [History(**entry) for entry in data]
 
 
 class CaselistResource(BaseResource):
@@ -248,15 +263,15 @@ class CaselistResource(BaseResource):
         data = self._request("POST", f"{self._path}/schools", json=kwargs)
         return School(**data)
 
-    def recent(self) -> List[Dict[str, Any]]:
+    def recent(self) -> List[Recent]:
         """Get recent modifications in this caselist"""
         data = self._request("GET", f"{self._path}/recent")
-        return data
+        return [Recent(**entry) for entry in data]
 
-    def downloads(self) -> List[Dict[str, Any]]:
+    def downloads(self) -> List[Download]:
         """Get bulk downloads for this caselist"""
         data = self._request("GET", f"{self._path}/downloads")
-        return data
+        return [Download(**entry) for entry in data]
 
 
 class OpenCaselistClient:
@@ -373,7 +388,7 @@ class OpenCaselistClient:
         except requests.exceptions.RequestException as e:
             raise APIError(f"Failed to fetch caselists: {e}")
 
-    def search(self, query: str, **params) -> List[Dict[str, Any]]:
+    def search(self, query: str, **params) -> List[SearchResult]:
         """
         Search across caselists
 
@@ -382,14 +397,15 @@ class OpenCaselistClient:
             **params: Additional search parameters
 
         Returns:
-            List of search results
+            List of SearchResult objects
         """
         url = f"{self.BASE_URL}/search"
         params["q"] = query
         try:
             response = self._session.get(url, params=params, timeout=30)
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            return [SearchResult(**result) for result in data]
         except requests.exceptions.RequestException as e:
             raise APIError(f"Search failed: {e}")
 
@@ -410,3 +426,135 @@ class OpenCaselistClient:
             return response.content
         except requests.exceptions.RequestException as e:
             raise APIError(f"Download failed: {e}")
+
+    # Tabroom methods
+    def tabroom_students(self) -> List[TabroomStudent]:
+        """
+        Get list of students linked to the authenticated user on Tabroom
+
+        Returns:
+            List of TabroomStudent objects
+        """
+        url = f"{self.BASE_URL}/tabroom/students"
+        try:
+            response = self._session.get(url, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return [TabroomStudent(**student) for student in data]
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Failed to fetch Tabroom students: {e}")
+
+    def tabroom_rounds(self, slug: Optional[str] = None) -> List[TabroomRound]:
+        """
+        Get list of rounds linked to the authenticated user or slug on Tabroom
+
+        Args:
+            slug: Optional slug to filter rounds
+
+        Returns:
+            List of TabroomRound objects
+        """
+        url = f"{self.BASE_URL}/tabroom/rounds"
+        params = {}
+        if slug:
+            params["slug"] = slug
+
+        try:
+            response = self._session.get(url, params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return [TabroomRound(**round_data) for round_data in data]
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Failed to fetch Tabroom rounds: {e}")
+
+    def tabroom_chapters(self) -> List[TabroomChapter]:
+        """
+        Get list of chapters linked to the authenticated user on Tabroom
+
+        Returns:
+            List of TabroomChapter objects
+        """
+        url = f"{self.BASE_URL}/tabroom/chapters"
+        try:
+            response = self._session.get(url, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return [TabroomChapter(**chapter) for chapter in data]
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Failed to fetch Tabroom chapters: {e}")
+
+    def create_tabroom_link(self, **kwargs) -> TabroomLink:
+        """
+        Create a tabroom link
+
+        Args:
+            **kwargs: Link data (e.g., slug)
+
+        Returns:
+            TabroomLink object
+        """
+        url = f"{self.BASE_URL}/tabroom/link"
+        try:
+            response = self._session.post(url, json=kwargs, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return TabroomLink(**data)
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Failed to create Tabroom link: {e}")
+
+    # OpenEv methods
+    def openev_files(self, year: Optional[str] = None, **params) -> List[File]:
+        """
+        Get files for an open evidence year
+
+        Args:
+            year: Optional year to filter files
+            **params: Additional query parameters
+
+        Returns:
+            List of File objects
+        """
+        url = f"{self.BASE_URL}/openev"
+        if year:
+            params["year"] = year
+
+        try:
+            response = self._session.get(url, params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return [File(**file_data) for file_data in data]
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Failed to fetch OpenEv files: {e}")
+
+    def create_openev_file(self, **kwargs) -> File:
+        """
+        Create an OpenEv file
+
+        Args:
+            **kwargs: File data (title, path, year, camp, lab, tags, etc.)
+
+        Returns:
+            File object
+        """
+        url = f"{self.BASE_URL}/openev"
+        try:
+            response = self._session.post(url, json=kwargs, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            return File(**data)
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Failed to create OpenEv file: {e}")
+
+    def delete_openev_file(self, file_id: int) -> None:
+        """
+        Delete an OpenEv file
+
+        Args:
+            file_id: The ID of the file to delete
+        """
+        url = f"{self.BASE_URL}/openev/{file_id}"
+        try:
+            response = self._session.delete(url, timeout=30)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Failed to delete OpenEv file: {e}")
